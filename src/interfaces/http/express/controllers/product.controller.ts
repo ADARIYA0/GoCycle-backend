@@ -14,7 +14,6 @@ const userRepo = new UserRepository();
 const productService = new ProductService(productRepo, userRepo);
 
 export async function createProductHandler(req: Request, res: Response) {
-    // Cast to access multer's file property
     const file = (req as any).file as Express.Multer.File | undefined;
     
     try {
@@ -26,7 +25,6 @@ export async function createProductHandler(req: Request, res: Response) {
             });
         }
 
-        // Check if file was uploaded
         if (!file) {
             return res.status(400).json({
                 error: "IMAGE_REQUIRED",
@@ -34,10 +32,8 @@ export async function createProductHandler(req: Request, res: Response) {
             });
         }
 
-        // Validate request body
         const parseResult = createProductSchema.safeParse(req.body);
         if (!parseResult.success) {
-            // Delete uploaded file if validation fails
             await deleteUploadedFile(file.filename);
             return res.status(400).json({
                 error: "VALIDATION_ERROR",
@@ -45,15 +41,12 @@ export async function createProductHandler(req: Request, res: Response) {
             });
         }
 
-        // Compress the image to 80% quality
         try {
             await ImageService.compressImage(file.filename);
         } catch (compressError) {
             logger.error("Image compression failed", compressError);
-            // Continue without compression if it fails
         }
 
-        // Create product DTO
         const dto = {
             name: parseResult.data.name,
             description: parseResult.data.description ?? undefined,
@@ -73,7 +66,6 @@ export async function createProductHandler(req: Request, res: Response) {
             data: product,
         });
     } catch (err: any) {
-        // Delete uploaded file on error
         if (file) {
             await deleteUploadedFile(file.filename);
         }
@@ -133,17 +125,14 @@ export async function getAllProductsHandler(req: Request, res: Response) {
     }
 }
 
-// Helper function to delete uploaded file
 async function deleteUploadedFile(filename: string): Promise<void> {
     try {
         const filepath = path.join(PRODUCT_UPLOAD_DIR, filename);
         await fs.unlink(filepath);
     } catch {
-        // Ignore deletion errors
     }
 }
 
-// Multer error handler middleware
 export function handleMulterError(err: any, req: Request, res: Response, next: NextFunction) {
     if (err) {
         if (err.code === "LIMIT_FILE_SIZE") {
