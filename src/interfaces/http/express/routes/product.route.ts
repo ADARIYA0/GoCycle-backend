@@ -10,7 +10,6 @@ import { productImageUpload } from "../../../../infrastructure/upload/upload.con
 
 const router = Router();
 
-// POST /api/products - Create product (authenticated, seller only)
 router.post(
     "/",
     authenticate,
@@ -19,10 +18,8 @@ router.post(
     createProductHandler
 );
 
-// GET /api/products/my-products - Get seller's own products (authenticated)
 router.get("/my-products", authenticate, getMyProductsHandler);
 
-// GET /api/products - Get all products (public)
 router.get("/", getAllProductsHandler);
 
 export default router;
