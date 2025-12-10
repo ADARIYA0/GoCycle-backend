@@ -9,9 +9,6 @@ export class SubCategoryService {
         private readonly storeRepo: StoreRepository
     ) { }
 
-    /**
-     * Capitalize first letter of each word
-     */
     private capitalizeWords(str: string): string {
         return str
             .split(" ")
@@ -20,22 +17,18 @@ export class SubCategoryService {
     }
 
     async createSubCategory(userId: string, dto: CreateSubCategoryDTO): Promise<SubCategoryResponseDTO> {
-        // Get user's store
         const store = await this.storeRepo.findByUserId(userId);
         if (!store) {
             throw new Error("STORE_NOT_FOUND");
         }
 
-        // Capitalize the name
         const capitalizedName = this.capitalizeWords(dto.name.trim());
 
-        // Check for duplicate name (case-insensitive)
         const existing = await this.subCategoryRepo.findByNameCaseInsensitive(capitalizedName);
         if (existing) {
             throw new Error("DUPLICATE_NAME");
         }
 
-        // Create sub-category
         const subCategory = await this.subCategoryRepo.createAndSave({
             storeId: store.id,
             name: capitalizedName,
@@ -54,34 +47,28 @@ export class SubCategoryService {
     }
 
     async updateSubCategory(userId: string, subCategoryId: string, dto: UpdateSubCategoryDTO): Promise<SubCategoryResponseDTO> {
-        // Get user's store
         const store = await this.storeRepo.findByUserId(userId);
         if (!store) {
             throw new Error("STORE_NOT_FOUND");
         }
 
-        // Get sub-category
         const subCategory = await this.subCategoryRepo.findById(subCategoryId);
         if (!subCategory) {
             throw new Error("SUB_CATEGORY_NOT_FOUND");
         }
 
-        // Check ownership
         if (subCategory.storeId !== store.id) {
             logger.warn(`Store ${store.id} attempted to edit sub-category ${subCategoryId} owned by store ${subCategory.storeId}`);
             throw new Error("NOT_OWNER");
         }
 
-        // Capitalize the name
         const capitalizedName = this.capitalizeWords(dto.name.trim());
 
-        // Check for duplicate name (case-insensitive), excluding current
         const existing = await this.subCategoryRepo.findByNameCaseInsensitive(capitalizedName);
         if (existing && existing.id !== subCategoryId) {
             throw new Error("DUPLICATE_NAME");
         }
 
-        // Update
         const updated = await this.subCategoryRepo.update(subCategoryId, {
             name: capitalizedName,
         });
