@@ -26,7 +26,6 @@ export class SessionRepository {
             ipAddress: data.ipAddress,
             userAgent: data.userAgent,
             expiresAt: data.expiresAt,
-            revoked: false,
         });
         return await this.repo.save(session);
     }
@@ -47,42 +46,29 @@ export class SessionRepository {
                 device,
                 ipAddress,
                 userAgent,
-                revoked: false,
             },
         });
     }
 
     async findActiveSessionsByUserId(userId: string): Promise<Session[]> {
         return await this.repo.find({
-            where: {
-                userId,
-                revoked: false,
-            },
-            order: {
-                createdAt: "DESC",
-            },
+            where: { userId },
+            order: { createdAt: "DESC" },
         });
     }
 
     async findByRefreshToken(refreshToken: string): Promise<Session | null> {
         return await this.repo.findOne({
-            where: {
-                refreshToken,
-                revoked: false,
-            },
+            where: { refreshToken },
         });
-    }
-
-    async revokeSession(sessionId: string): Promise<void> {
-        await this.repo.update(sessionId, { revoked: true });
-    }
-
-    async revokeAllUserSessions(userId: string): Promise<void> {
-        await this.repo.update({ userId }, { revoked: true });
     }
 
     async deleteSession(sessionId: string): Promise<void> {
         await this.repo.delete(sessionId);
+    }
+
+    async deleteAllUserSessions(userId: string): Promise<void> {
+        await this.repo.delete({ userId });
     }
 
     async deleteByUserIdAndDevice(
@@ -114,7 +100,7 @@ export class SessionRepository {
         const result = await this.repo
             .createQueryBuilder()
             .delete()
-            .where("expires_at < :now", { now: new Date() })
+            .where("\"expiresAt\" < :now", { now: new Date() })
             .execute();
         return result.affected || 0;
     }

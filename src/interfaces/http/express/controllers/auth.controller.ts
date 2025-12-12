@@ -168,7 +168,6 @@ export async function refreshTokenHandler(req: Request, res: Response) {
         const errorMap: Record<string, { status: number; message: string }> = {
             INVALID_REFRESH_TOKEN: { status: 401, message: "Invalid refresh token" },
             SESSION_NOT_FOUND: { status: 401, message: "Session not found" },
-            SESSION_REVOKED: { status: 401, message: "Session has been revoked" },
             SESSION_EXPIRED: { status: 401, message: "Session has expired" },
         };
 

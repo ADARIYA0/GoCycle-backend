@@ -55,7 +55,7 @@ export const authenticate = async (
             });
             res.status(401).json({
                 error: "UNAUTHORIZED",
-                message: "Token has been revoked",
+                message: "Token has been invalidated",
             });
             return;
         }

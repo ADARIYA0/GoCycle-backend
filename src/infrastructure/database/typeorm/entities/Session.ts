@@ -34,9 +34,6 @@ export class Session {
     @Column({ type: "text" })
     userAgent!: string;
 
-    @Column({ type: "boolean", default: false })
-    revoked!: boolean;
-
     @CreateDateColumn({ type: "timestamptz" })
     createdAt!: Date;
 
