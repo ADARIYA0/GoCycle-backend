@@ -18,7 +18,7 @@ export class RefreshTokenService {
     /**
      * Refresh access token using refresh token
      * - Verify refresh token
-     * - Check session exists and is not revoked
+     * - Check session exists
      * - Generate new access token
      * - Optionally rotate refresh token
      */
@@ -43,14 +43,6 @@ export class RefreshTokenService {
             throw new Error("SESSION_NOT_FOUND");
         }
 
-        if (session.revoked) {
-            logger.warn("Attempt to use revoked session", {
-                userId: session.userId,
-                sessionId: session.id,
-            });
-            throw new Error("SESSION_REVOKED");
-        }
-
         if (new Date() > session.expiresAt) {
             logger.warn("Attempt to use expired session", {
                 userId: session.userId,
@@ -66,7 +58,7 @@ export class RefreshTokenService {
                 userId: session.userId,
                 sessionId: session.id,
             });
-            await this.sessionRepo.revokeSession(session.id);
+            await this.sessionRepo.deleteSession(session.id);
             throw new Error("INVALID_REFRESH_TOKEN");
         }
 

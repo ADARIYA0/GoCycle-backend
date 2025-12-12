@@ -23,20 +23,16 @@ const parseDevice = (userAgent: string): string => {
 };
 
 export const extractDeviceInfo = (req: Request): DeviceInfo => {
-    const forwarded = req.headers["x-forwarded-for"];
-    let ipAddress: string;
+    // Use req.ip which Express parses correctly with trust proxy enabled
+    // This reads X-Forwarded-For properly and gets the first (real) client IP
+    let ipAddress = req.ip || req.socket.remoteAddress || "unknown";
 
-    if (typeof forwarded === "string") {
-        // Take the first IP if there are multiple
-        ipAddress = forwarded.split(",")[0]?.trim() || "unknown";
-    } else if (Array.isArray(forwarded)) {
-        ipAddress = forwarded[0] || "unknown";
-    } else {
-        ipAddress = req.ip || req.socket.remoteAddress || "unknown";
+    // Remove IPv6 prefix if present (::ffff:)
+    if (ipAddress.startsWith("::ffff:")) {
+        ipAddress = ipAddress.substring(7);
     }
 
     const userAgent = req.headers["user-agent"] || "Unknown";
-
     const device = parseDevice(userAgent);
 
     return {

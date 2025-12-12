@@ -12,11 +12,6 @@ import logger from "../../../infrastructure/logging/logger";
 export class LogoutService {
     constructor(private readonly sessionRepo: SessionRepository) { }
 
-    /**
-     * Logout from current device only
-     * - Blacklist the access token in Redis
-     * - Delete the session from database
-     */
     async logout(
         accessToken: string,
         refreshToken: string,
@@ -75,11 +70,6 @@ export class LogoutService {
         }
     }
 
-    /**
-     * Logout from all devices
-     * - Blacklist current access token
-     * - Revoke all sessions for the user
-     */
     async logoutAll(accessToken: string, userId: string): Promise<number> {
         const accessPayload = verifyAccessToken(accessToken);
         if (accessPayload) {
@@ -90,13 +80,14 @@ export class LogoutService {
         const sessions = await this.sessionRepo.findActiveSessionsByUserId(userId);
         const sessionCount = sessions.length;
 
-        await this.sessionRepo.revokeAllUserSessions(userId);
+        await this.sessionRepo.deleteAllUserSessions(userId);
 
         logger.info("User logged out from all devices", {
             userId,
-            sessionsRevoked: sessionCount,
+            sessionsDeleted: sessionCount,
         });
 
         return sessionCount;
     }
 }
+
